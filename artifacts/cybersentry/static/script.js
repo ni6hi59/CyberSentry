@@ -12,11 +12,17 @@ const indicators = document.querySelector("#indicators");
 const resultNote = document.querySelector("#result-note");
 const formError = document.querySelector("#form-error");
 const portalStage = document.querySelector("#portal-stage");
+const scanlineSystem = document.querySelector("#red-scanlines");
 const historyList = document.querySelector("#history-list");
 const historyEmpty = document.querySelector("#history-empty");
 const clearHistory = document.querySelector("#clear-history");
 
 const HISTORY_KEY = "cybersentry-history";
+
+function setScanlineState(state) {
+  scanlineSystem.classList.remove("is-processing", "is-suspicious", "is-clear", "is-error", "is-complete");
+  if (state) scanlineSystem.classList.add(`is-${state}`);
+}
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, (character) => ({
@@ -73,6 +79,9 @@ function renderResult(result) {
   emptyResult.classList.add("is-hidden");
   resultContent.classList.remove("is-hidden");
   const hasIndicators = result.indicator_count > 0;
+  setScanlineState(hasIndicators ? "suspicious" : "clear");
+  window.setTimeout(() => scanlineSystem.classList.add("is-complete"), 20);
+  window.setTimeout(() => scanlineSystem.classList.remove("is-complete"), 900);
   resultState.textContent = hasIndicators ? "Needs review" : "No obvious indicators";
   resultState.className = `result-state ${hasIndicators ? "review-state" : "clear-state"}`;
   category.textContent = result.category;
@@ -119,6 +128,7 @@ form.addEventListener("submit", async (event) => {
   submit.querySelector("span:nth-child(2)").textContent = "Analyzing locally…";
   portalStage.classList.remove("is-complete");
   portalStage.classList.add("is-processing");
+  setScanlineState("processing");
   resultState.textContent = "Local processing";
   resultState.className = "result-state processing-state";
   emptyResult.classList.remove("is-hidden");
@@ -137,6 +147,7 @@ form.addEventListener("submit", async (event) => {
     saveHistory(result);
   } catch (error) {
     portalStage.classList.remove("is-processing");
+    setScanlineState("error");
     formError.textContent = error.message;
     input.setAttribute("aria-invalid", "true");
     resultState.textContent = "Input needed";

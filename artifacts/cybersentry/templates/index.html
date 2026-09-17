@@ -12,6 +12,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   </head>
   <body>
+    <div class="red-scanlines" id="red-scanlines" aria-hidden="true">
+      <div class="scanline-grid"></div>
+      <div class="scanline-tracks scanline-tracks-a"></div>
+      <div class="scanline-tracks scanline-tracks-b"></div>
+      <div class="scanline-beam"></div>
+      <div class="scanline-pulse scanline-pulse-a"></div>
+      <div class="scanline-pulse scanline-pulse-b"></div>
+      <div class="scanline-glitch"></div>
+    </div>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="CyberSentry home">
