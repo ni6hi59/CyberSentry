@@ -13,6 +13,7 @@ const resultNote = document.querySelector("#result-note");
 const formError = document.querySelector("#form-error");
 const portalStage = document.querySelector("#portal-stage");
 const scanlineSystem = document.querySelector("#red-scanlines");
+const scanlineBeamOverlay = document.querySelector("#scanline-beam-overlay");
 const historyList = document.querySelector("#history-list");
 const historyEmpty = document.querySelector("#history-empty");
 const clearHistory = document.querySelector("#clear-history");
@@ -21,6 +22,7 @@ const HISTORY_KEY = "cybersentry-history";
 
 function setScanlineState(state) {
   scanlineSystem.classList.remove("is-processing", "is-suspicious", "is-clear", "is-error", "is-complete");
+  scanlineBeamOverlay.classList.toggle("is-processing", state === "processing");
   if (state) scanlineSystem.classList.add(`is-${state}`);
 }
 
