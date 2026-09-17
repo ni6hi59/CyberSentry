@@ -5,7 +5,7 @@ from __future__ import annotations
 import ipaddress
 import os
 import re
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 from flask import Flask, jsonify, render_template, request
 
@@ -29,6 +29,9 @@ SUSPICIOUS_KEYWORDS = {
     "wallet": "Wallet language can be used to target cryptocurrency accounts.",
 }
 
+URL_SCHEME_RE = re.compile(r"^[a-z][a-z0-9+.-]*://", re.IGNORECASE)
+ENCODED_COMPONENT_RE = re.compile(r"%[0-9a-f]{2}", re.IGNORECASE)
+
 
 def _indicator(
     indicator_id: str,
@@ -46,27 +49,71 @@ def _indicator(
     }
 
 
+def normalize_url(raw_url: str) -> tuple[str, object]:
+    """Normalize and validate URL text without resolving or fetching it."""
+    if not isinstance(raw_url, str):
+        raise ValueError("Enter a URL to analyze.")
+
+    value = raw_url.strip()
+    if not value:
+        raise ValueError("Enter a URL to analyze.")
+    if len(value) > 4096:
+        raise ValueError("Please enter a URL shorter than 4,096 characters.")
+    if any(character.isspace() for character in value):
+        raise ValueError("URLs cannot contain spaces. Remove spaces and try again.")
+
+    if value.startswith("//"):
+        normalized = f"https:{value}"
+    elif URL_SCHEME_RE.match(value):
+        normalized = value
+    else:
+        normalized = f"https://{value}"
+
+    try:
+        parsed = urlsplit(normalized)
+    except ValueError as error:
+        raise ValueError("Enter a valid HTTP or HTTPS URL.") from error
+
+    if parsed.scheme.lower() not in {"http", "https"}:
+        raise ValueError("Only HTTP and HTTPS URLs can be analyzed.")
+    if not parsed.netloc or not parsed.hostname:
+        raise ValueError("Enter a URL with a hostname, such as example.com.")
+
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise ValueError("The URL contains an invalid port number.") from error
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError("The URL port must be between 1 and 65,535.")
+
+    return normalized, parsed
+
+
 def analyze_url(raw_url: str) -> dict:
     """Inspect URL text only. This function never makes a network request."""
-    value = raw_url.strip()
+    normalized, parsed = normalize_url(raw_url)
     indicators: list[dict[str, str]] = []
-
-    candidate = value if re.match(r"^[a-z][a-z0-9+.-]*://", value, re.I) else f"https://{value}"
-    parsed = urlsplit(candidate)
     hostname = parsed.hostname or ""
-    lowered = value.lower()
+    lowered = normalized.lower()
+    encoded_component_count = len(ENCODED_COMPONENT_RE.findall(normalized))
+    query_parameter_count = len(parse_qsl(parsed.query, keep_blank_values=True)) if parsed.query else 0
+    try:
+        ipaddress.ip_address(hostname)
+        hostname_is_ip = True
+    except ValueError:
+        hostname_is_ip = False
 
-    if len(value) > 120:
+    if len(normalized) > 120:
         indicators.append(
             _indicator(
                 "long-url",
                 "Unusually long URL",
                 "Long URLs can hide the important part of a link among many parameters or encoded characters.",
-                f"{len(value)} characters detected",
+                f"{len(normalized)} characters detected",
             )
         )
 
-    if "@" in value:
+    if "@" in normalized:
         indicators.append(
             _indicator(
                 "at-symbol",
@@ -77,8 +124,7 @@ def analyze_url(raw_url: str) -> dict:
             )
         )
 
-    try:
-        ipaddress.ip_address(hostname)
+    if hostname_is_ip:
         indicators.append(
             _indicator(
                 "ip-hostname",
@@ -88,8 +134,6 @@ def analyze_url(raw_url: str) -> dict:
                 "high",
             )
         )
-    except ValueError:
-        pass
 
     if hostname.startswith("xn--") or ".xn--" in hostname:
         indicators.append(
@@ -112,20 +156,7 @@ def analyze_url(raw_url: str) -> dict:
             )
         )
 
-    try:
-        port = parsed.port
-    except ValueError:
-        port = None
-        indicators.append(
-            _indicator(
-                "invalid-port",
-                "Invalid port format",
-                "The hostname includes a port value that is not a valid number, so the URL should be treated carefully.",
-                "Port could not be parsed",
-                "high",
-            )
-        )
-
+    port = parsed.port
     if port is not None and port not in (80, 443):
         indicators.append(
             _indicator(
@@ -154,19 +185,42 @@ def analyze_url(raw_url: str) -> dict:
             )
         )
 
-    if parsed.scheme and parsed.scheme.lower() not in {"http", "https"}:
+    if encoded_component_count >= 3:
         indicators.append(
             _indicator(
-                "unusual-scheme",
-                "Unusual URL scheme",
-                "This is not a standard HTTP or HTTPS web link, so confirm you intended to inspect this format.",
-                parsed.scheme,
-                "high",
+                "encoded-components",
+                "Multiple encoded components",
+                "Several percent-encoded values can make the visible URL harder to read and the destination harder to inspect at a glance.",
+                f"{encoded_component_count} percent-encoded values",
+                "medium",
+            )
+        )
+
+    if query_parameter_count >= 6:
+        indicators.append(
+            _indicator(
+                "many-query-parameters",
+                "Many query parameters",
+                "A large parameter string can obscure tracking, redirect, or data-collection behavior in the visible link.",
+                f"{query_parameter_count} query parameters",
+                "medium",
             )
         )
 
     return {
-        "url": value,
+        "url": normalized,
+        "features": {
+            "length": len(normalized),
+            "scheme": parsed.scheme.lower(),
+            "hostname": hostname,
+            "hostname_is_ip": hostname_is_ip,
+            "port": port,
+            "path": parsed.path or "/",
+            "query_parameter_count": query_parameter_count,
+            "encoded_component_count": encoded_component_count,
+            "has_fragment": bool(parsed.fragment),
+            "has_credentials": parsed.username is not None or parsed.password is not None,
+        },
         "hostname": hostname or "Unable to identify hostname",
         "category": "Needs Review" if indicators else "No Obvious Indicators",
         "indicator_count": len(indicators),
@@ -184,11 +238,10 @@ def index():
 def analyze():
     payload = request.get_json(silent=True) or {}
     raw_url = payload.get("url", "")
-    if not isinstance(raw_url, str) or not raw_url.strip():
-        return jsonify({"error": "Enter a URL to analyze."}), 400
-    if len(raw_url.strip()) > 4096:
-        return jsonify({"error": "Please enter a URL shorter than 4,096 characters."}), 400
-    return jsonify(analyze_url(raw_url))
+    try:
+        return jsonify(analyze_url(raw_url))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
 
 if __name__ == "__main__":
