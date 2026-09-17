@@ -11,6 +11,7 @@ const scannedUrl = document.querySelector("#scanned-url");
 const indicators = document.querySelector("#indicators");
 const resultNote = document.querySelector("#result-note");
 const formError = document.querySelector("#form-error");
+const portalStage = document.querySelector("#portal-stage");
 const historyList = document.querySelector("#history-list");
 const historyEmpty = document.querySelector("#history-empty");
 const clearHistory = document.querySelector("#clear-history");
@@ -66,6 +67,9 @@ function renderHistory() {
 }
 
 function renderResult(result) {
+  portalStage.classList.remove("is-processing");
+  portalStage.classList.add("is-complete");
+  window.setTimeout(() => portalStage.classList.remove("is-complete"), 800);
   emptyResult.classList.add("is-hidden");
   resultContent.classList.remove("is-hidden");
   const hasIndicators = result.indicator_count > 0;
@@ -85,7 +89,10 @@ function renderResult(result) {
         <div class="indicator-body"><div class="indicator-title-row"><h4>${escapeHtml(item.title)}</h4><span>${escapeHtml(item.severity)} attention</span></div><p>${escapeHtml(item.explanation)}</p><code>${escapeHtml(item.evidence)}</code></div>
       </article>`).join("")
     : `<div class="clear-message"><span>✓</span><div><strong>No obvious indicators found</strong><p>This URL did not match the patterns CyberSentry checks for. Stay attentive to the page and request context.</p></div></div>`;
-  document.querySelector("#result-panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  document.querySelector("#result-panel").scrollIntoView({
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    block: "nearest",
+  });
 }
 
 input.addEventListener("input", () => {
@@ -109,7 +116,15 @@ form.addEventListener("submit", async (event) => {
   }
   submit.disabled = true;
   submit.classList.add("loading");
-  submit.querySelector("span:nth-child(2)").textContent = "Inspecting text…";
+  submit.querySelector("span:nth-child(2)").textContent = "Analyzing locally…";
+  portalStage.classList.remove("is-complete");
+  portalStage.classList.add("is-processing");
+  resultState.textContent = "Local processing";
+  resultState.className = "result-state processing-state";
+  emptyResult.classList.remove("is-hidden");
+  resultContent.classList.add("is-hidden");
+  emptyResult.querySelector("h3").textContent = "Inspecting URL text";
+  emptyResult.querySelector("p").textContent = "Checking the submitted characters locally. No request is made to the destination.";
   try {
     const response = await fetch("/analyze", {
       method: "POST",
@@ -121,10 +136,11 @@ form.addEventListener("submit", async (event) => {
     renderResult(result);
     saveHistory(result);
   } catch (error) {
+    portalStage.classList.remove("is-processing");
     formError.textContent = error.message;
     input.setAttribute("aria-invalid", "true");
     resultState.textContent = "Input needed";
-    resultState.className = "result-state review-state";
+    resultState.className = "result-state input-state";
     emptyResult.classList.remove("is-hidden");
     resultContent.classList.add("is-hidden");
     emptyResult.querySelector("h3").textContent = error.message;
