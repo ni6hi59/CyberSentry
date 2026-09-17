@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="CyberSentry locally inspects URL text for common warning signs without visiting the link." />
+    <title>CyberSentry · URL investigation</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="CyberSentry home">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>Cyber<span>Sentry</span></span>
+        </a>
+        <div class="topbar-meta">
+          <span class="status-dot"></span>
+          <span>Local analysis mode</span>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="intro">
+          <div class="eyebrow"><span class="eyebrow-line"></span> URL investigation desk</div>
+          <h1>Know what a link is<br /><em>before</em> you open it.</h1>
+          <p class="intro-copy">Inspect URL text for common warning signs without visiting the destination. A quick first pass for curious minds and careful clicks.</p>
+        </section>
+
+        <section class="workspace-grid" aria-label="URL analyzer">
+          <div class="panel analyzer-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">01 / Inspect</p>
+                <h2>Analyze a URL</h2>
+              </div>
+              <span class="shield-icon" aria-hidden="true">✦</span>
+            </div>
+            <form id="analyze-form">
+              <label for="url-input">Paste a link to examine</label>
+              <div class="input-wrap">
+                <span class="input-prefix">https://</span>
+                <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com/account/verify" aria-describedby="input-help" />
+              </div>
+              <div class="input-footer">
+                <span id="input-help">Nothing is opened or fetched.</span>
+                <span id="char-count">0 / 4,096</span>
+              </div>
+              <button class="analyze-button" type="submit">
+                <span class="button-icon">⌁</span>
+                <span>Analyze URL</span>
+                <span class="button-arrow">↗</span>
+              </button>
+            </form>
+            <div class="privacy-note">
+              <span class="lock-icon" aria-hidden="true">⌑</span>
+              <div><strong>Private by design</strong><span>Analysis happens on this app only. Your URL is not opened, resolved, or stored on a server.</span></div>
+            </div>
+          </div>
+
+          <div class="panel result-panel" id="result-panel" aria-live="polite">
+            <div class="panel-heading result-heading">
+              <div>
+                <p class="panel-kicker">02 / Findings</p>
+                <h2>Investigation result</h2>
+              </div>
+              <span class="result-state" id="result-state">Waiting</span>
+            </div>
+            <div class="empty-result" id="empty-result">
+              <div class="scan-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+              <h3>Ready when you are</h3>
+              <p>Enter a URL above to see a plain-language breakdown of patterns worth a second look.</p>
+            </div>
+            <div class="result-content is-hidden" id="result-content">
+              <div class="result-summary">
+                <div class="summary-icon" id="summary-icon">!</div>
+                <div><p class="summary-label">Overall category</p><h3 id="category">Needs Review</h3></div>
+                <span class="indicator-count" id="indicator-count">0 indicators</span>
+              </div>
+              <div class="scanned-url"><span>SCANNED TEXT</span><code id="scanned-url"></code></div>
+              <div class="indicators" id="indicators"></div>
+              <p class="result-note" id="result-note"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="history-section">
+          <div class="section-heading">
+            <div><p class="panel-kicker">03 / Trail</p><h2>Recent scans</h2></div>
+            <button class="clear-button" id="clear-history" type="button">Clear history</button>
+          </div>
+          <div class="history-list" id="history-list">
+            <div class="history-empty" id="history-empty"><span>⌁</span><p>Your recent investigations will appear here.</p></div>
+          </div>
+        </section>
+
+        <footer class="disclaimer">
+          <span class="disclaimer-mark">i</span>
+          <p><strong>Educational prototype.</strong> CyberSentry looks for a small set of URL text patterns. It is not a reliable real-world phishing detector, and a clean result does not mean a link is safe.</p>
+        </footer>
+      </main>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

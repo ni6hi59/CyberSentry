@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CyberSentry"
+description = "A dark cybersecurity URL investigation dashboard that analyzes entered URLs locally without visiting them, explains detected indicators, and keeps a lightweight scan history."
+version = "1.0.0"
+id = "artifacts/cybersentry"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18849
+
+[services.development]
+run = "pnpm --filter @workspace/cybersentry run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cybersentry", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cybersentry/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18849"
+BASE_PATH = "/"
