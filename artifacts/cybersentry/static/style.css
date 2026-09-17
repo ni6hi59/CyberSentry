@@ -56,6 +56,7 @@ input::placeholder { color: #4c5767; }
 .input-error { animation: shake .35s ease; border-color: var(--red); }
 @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 .input-footer { display: flex; justify-content: space-between; color: var(--muted-2); margin: 10px 1px 28px; letter-spacing: .03em; text-transform: none; font-size: 10px; }
+.form-error { color: var(--red); font-size: 11px; line-height: 1.45; margin: -18px 1px 18px; min-height: 0; }
 .analyze-button { width: 100%; border: 0; background: var(--cyan); color: #09211f; padding: 14px 15px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 800; transition: transform .2s, background .2s; }
 .analyze-button:hover { background: #a4f6e7; transform: translateY(-2px); }.analyze-button:disabled { opacity: .65; cursor: wait; transform: none; }
 .button-icon { font-size: 20px; line-height: 0; transform: rotate(-25deg); }.button-arrow { margin-left: auto; font-size: 19px; }.loading .button-icon { animation: spin 1s linear infinite; }@keyframes spin { to { transform: rotate(360deg); } }

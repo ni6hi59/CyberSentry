@@ -10,6 +10,7 @@ const summaryIcon = document.querySelector("#summary-icon");
 const scannedUrl = document.querySelector("#scanned-url");
 const indicators = document.querySelector("#indicators");
 const resultNote = document.querySelector("#result-note");
+const formError = document.querySelector("#form-error");
 const historyList = document.querySelector("#history-list");
 const historyEmpty = document.querySelector("#history-empty");
 const clearHistory = document.querySelector("#clear-history");
@@ -68,12 +69,12 @@ function renderResult(result) {
   emptyResult.classList.add("is-hidden");
   resultContent.classList.remove("is-hidden");
   const hasIndicators = result.indicator_count > 0;
-  resultState.textContent = hasIndicators ? "Review suggested" : "Looks clear";
+  resultState.textContent = hasIndicators ? "Needs review" : "No obvious indicators";
   resultState.className = `result-state ${hasIndicators ? "review-state" : "clear-state"}`;
   category.textContent = result.category;
   category.className = hasIndicators ? "review-heading" : "clear-heading";
   indicatorCount.textContent = `${result.indicator_count} ${result.indicator_count === 1 ? "indicator" : "indicators"}`;
-  summaryIcon.textContent = hasIndicators ? "!" : "✓";
+  summaryIcon.textContent = hasIndicators ? "!" : "–";
   summaryIcon.className = `summary-icon ${hasIndicators ? "review-icon" : "clear-icon"}`;
   scannedUrl.textContent = result.url;
   resultNote.textContent = result.note;
@@ -89,14 +90,19 @@ function renderResult(result) {
 
 input.addEventListener("input", () => {
   charCount.textContent = `${input.value.length.toLocaleString()} / 4,096`;
+  formError.textContent = "";
+  input.removeAttribute("aria-invalid");
 });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const submit = form.querySelector("button");
   const url = input.value.trim();
+  formError.textContent = "";
   if (!url) {
     input.focus();
+    input.setAttribute("aria-invalid", "true");
+    formError.textContent = "Enter a URL to analyze.";
     input.classList.add("input-error");
     setTimeout(() => input.classList.remove("input-error"), 500);
     return;
@@ -115,6 +121,8 @@ form.addEventListener("submit", async (event) => {
     renderResult(result);
     saveHistory(result);
   } catch (error) {
+    formError.textContent = error.message;
+    input.setAttribute("aria-invalid", "true");
     resultState.textContent = "Input needed";
     resultState.className = "result-state review-state";
     emptyResult.classList.remove("is-hidden");
