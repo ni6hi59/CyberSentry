@@ -20,15 +20,63 @@
         </a>
         <div class="topbar-meta">
           <span class="status-dot"></span>
-          <span>Local analysis mode</span>
+          <span>Local / text only</span>
         </div>
       </header>
 
       <main class="main-content">
-        <section class="intro">
-          <div class="eyebrow"><span class="eyebrow-line"></span> URL investigation desk</div>
-          <h1>Know what a link is<br /><em>before</em> you open it.</h1>
-          <p class="intro-copy">Inspect URL text for common warning signs without visiting the destination. A quick first pass for curious minds and careful clicks.</p>
+        <section class="hero-section">
+          <div class="portal-stage" id="portal-stage" aria-hidden="true">
+            <div class="portal-haze"></div>
+            <svg class="portal-svg" viewBox="0 0 960 560" role="presentation">
+              <defs>
+                <linearGradient id="portal-violet" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#c8b7ff" />
+                  <stop offset=".48" stop-color="#8d5cff" />
+                  <stop offset="1" stop-color="#4d9fff" />
+                </linearGradient>
+                <linearGradient id="portal-blue" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0" stop-color="#396dff" stop-opacity=".12" />
+                  <stop offset=".5" stop-color="#8db9ff" />
+                  <stop offset="1" stop-color="#b78cff" stop-opacity=".08" />
+                </linearGradient>
+                <radialGradient id="portal-core">
+                  <stop offset="0" stop-color="#e7e1ff" stop-opacity=".9" />
+                  <stop offset=".18" stop-color="#a77cff" stop-opacity=".55" />
+                  <stop offset="1" stop-color="#6e52ff" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <g class="portal-beams">
+                <path d="M24 62 480 280 936 62" />
+                <path d="M24 498 480 280 936 498" />
+                <path d="M80 8 480 280 880 8" />
+                <path d="M80 552 480 280 880 552" />
+              </g>
+              <g class="portal-frames">
+                <rect class="portal-frame frame-outer" x="118" y="50" width="724" height="460" rx="11" />
+                <rect class="portal-frame frame-mid" x="196" y="103" width="568" height="354" rx="8" />
+                <rect class="portal-frame frame-inner" x="276" y="157" width="408" height="246" rx="6" />
+                <polygon class="portal-frame frame-diamond" points="480,100 660,280 480,460 300,280" />
+                <polygon class="portal-frame frame-diamond-small" points="480,176 584,280 480,384 376,280" />
+                <path class="portal-frame frame-cross" d="M480 180v200M380 280h200" />
+              </g>
+              <g class="portal-particles">
+                <circle cx="150" cy="158" r="2" /><circle cx="744" cy="164" r="2.5" />
+                <circle cx="236" cy="466" r="1.5" /><circle cx="780" cy="404" r="1.5" />
+                <circle cx="482" cy="280" r="3" /><circle cx="570" cy="211" r="1.5" />
+                <circle cx="395" cy="338" r="1.5" /><circle cx="640" cy="348" r="1.5" />
+              </g>
+              <circle class="portal-core" cx="480" cy="280" r="82" />
+              <circle class="portal-core-dot" cx="480" cy="280" r="3" />
+            </svg>
+            <div class="portal-sweep"></div>
+          </div>
+          <div class="intro">
+            <div class="eyebrow"><span class="eyebrow-line"></span> URL investigation desk</div>
+            <h1><span class="heading-line"><span>Know what a link is</span></span><span class="heading-line"><span><em>before</em> you open it.</span></span></h1>
+            <p class="intro-copy">Inspect URL text for common warning signs without visiting the destination. A quick first pass for curious minds and careful clicks.</p>
+            <div class="hero-footnote"><span class="hero-pulse"></span><span>Passive inspection / no destination request</span></div>
+          </div>
         </section>
 
         <section class="workspace-grid" aria-label="URL analyzer">
@@ -38,16 +86,16 @@
                 <p class="panel-kicker">01 / Inspect</p>
                 <h2>Analyze a URL</h2>
               </div>
-              <span class="shield-icon" aria-hidden="true">✦</span>
+              <span class="shield-icon" aria-hidden="true"><span></span></span>
             </div>
             <form id="analyze-form">
               <label for="url-input">Paste a link to examine</label>
               <div class="input-wrap">
-                <span class="input-prefix">https://</span>
+                <span class="input-prefix">URL</span>
                 <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="example.com/account/verify" aria-describedby="input-help" />
               </div>
               <div class="input-footer">
-                <span id="input-help">Nothing is opened or fetched.</span>
+                <span id="input-help">Text only · nothing is opened or fetched.</span>
                 <span id="char-count">0 / 4,096</span>
               </div>
               <p class="form-error" id="form-error" role="alert" aria-live="polite"></p>
@@ -73,7 +121,7 @@
             </div>
             <div class="empty-result" id="empty-result">
               <div class="scan-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
-              <h3>Ready when you are</h3>
+              <h3 id="empty-result-title">Ready when you are</h3>
               <p>Enter a URL above to see a plain-language breakdown of patterns worth a second look.</p>
             </div>
             <div class="result-content is-hidden" id="result-content">
