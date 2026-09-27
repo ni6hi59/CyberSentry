@@ -93,6 +93,19 @@ function renderResult(result) {
   summaryIcon.className = `summary-icon ${hasIndicators ? "review-icon" : "clear-icon"}`;
   scannedUrl.textContent = result.url;
   resultNote.textContent = result.note;
+
+const mlResult = result.ml_result;
+
+if (mlResult) {
+  document.querySelector("#ml-risk-score").textContent =
+    `${mlResult.risk_score}%`;
+
+  document.querySelector("#ml-phishing-probability").textContent =
+    `${(mlResult.phishing_probability * 100).toFixed(1)}%`;
+
+  document.querySelector("#ml-legitimate-probability").textContent =
+    `${(mlResult.legitimate_probability * 100).toFixed(1)}%`;
+}
   indicators.innerHTML = result.indicators.length
     ? result.indicators.map((item) => `
       <article class="indicator-card ${item.severity}">
