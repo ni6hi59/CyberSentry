@@ -693,6 +693,7 @@ def analyze_url(raw_url: str) -> dict:
         ),
 
         # 23 model features
+        "features": ml_features,
         "ml_features": ml_features,
 
         # Human-readable URL information
