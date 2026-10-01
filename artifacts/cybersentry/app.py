@@ -8,7 +8,6 @@ import re
 from urllib.parse import parse_qsl, urlsplit
 
 from flask import Flask, jsonify, render_template, request
-from ml.ml_predict import predict
 
 from ml.ml_predict import predict
 
